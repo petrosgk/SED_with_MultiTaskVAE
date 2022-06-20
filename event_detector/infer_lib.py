@@ -9,9 +9,10 @@ from tqdm import tqdm
 from scipy.signal import medfilt
 
 
-def infer(audio_files, data_path, save_path, model_path, threshold, post_process=False, save_raw_outputs=False):
+def infer(audio_files, data_path, output_dir, model_path, thresholds, save_raw_probs=False):
   if not os.path.exists(model_path):
     raise RuntimeError('Model weights not found in %s.' % model_path)
+  os.makedirs(output_dir, exist_ok=True)
   normalization_class_path = os.path.join(data_path, 'normalization.pickle')
   with open(normalization_class_path, 'rb') as f:
     normalization = pickle.load(f)
@@ -28,10 +29,9 @@ def infer(audio_files, data_path, save_path, model_path, threshold, post_process
   print(model.summary())
   print('Loading model weights from: %s' % model_path)
   model.load_weights(model_path, by_name=True)
-  outputs_tsv_file = open(os.path.join(save_path, 'outputs.tsv'), 'w')
-  outputs_tsv_file.write('filename' + '\t' + 'onset' + '\t' + 'offset' + '\t' + 'event_label' + '\n')
-  metadata_tsv_file = open(os.path.join(save_path, 'metadata.tsv'), 'w')
+  metadata_tsv_file = open(os.path.join(output_dir, 'metadata.tsv'), 'w')
   metadata_tsv_file.write('filename' + '\t' + 'duration' + '\n')
+  probs_per_audio_file = []
   for audio_file in tqdm(audio_files):
     if not os.path.exists(audio_file):
       raise FileNotFoundError('%s not found.' % audio_file)
@@ -49,18 +49,33 @@ def infer(audio_files, data_path, save_path, model_path, threshold, post_process
     # Infer from audio features
     # If strong labels, model outputs are event class probabilities per audio frame
     # If weak labels, model outputs are event class probabilities for the audio file
-    outputs = model.predict_on_batch(np.expand_dims(inputs, axis=0))
-    outputs = np.squeeze(outputs, axis=0)
-    if save_raw_outputs:
-      fname = os.path.join(save_path, os.path.splitext(os.path.basename(audio_file))[0])
-      np.savetxt(fname=fname + '.csv', X=outputs, delimiter=',')
-      np.save(file=fname + '.npy', arr=outputs)
-    if post_process:
-      outputs = medfilt(outputs, kernel_size=(19, 1))
-    # Convert model outputs to a transcription
-    filename = os.path.join(save_path, os.path.splitext(os.path.basename(audio_file))[0] + '.txt')
-    transcription_lines = io_lib.extract_transcription(filename, probs=outputs, labels=opt.labels, threshold=threshold)
-    for transcription_line in transcription_lines:
-      outputs_tsv_file.write(os.path.basename(audio_file) + '\t' + transcription_line)
-  outputs_tsv_file.close()
+    probs = model.predict_on_batch(np.expand_dims(inputs, axis=0))
+    probs = np.squeeze(probs, axis=0)
+    probs_per_audio_file.append(
+      {'filename': os.path.basename(audio_file),
+       'probs': probs}
+    )
+    if save_raw_probs:
+      raw_probs_save_dir = os.path.join(output_dir, 'raw_probs')
+      os.makedirs(raw_probs_save_dir, exist_ok=True)
+      fname = os.path.join(raw_probs_save_dir, os.path.splitext(os.path.basename(audio_file))[0])
+      np.savetxt(fname=fname + '.csv', X=probs, delimiter=',')
+      np.save(file=fname + '.npy', arr=probs)
   metadata_tsv_file.close()
+  for threshold in thresholds:
+    print(f'Threshold = {round(threshold, ndigits=2)}')
+    save_path = os.path.join(output_dir, 'threshold_' + str(round(threshold, ndigits=2)))
+    os.makedirs(save_path, exist_ok=True)
+    outputs_tsv_file = open(os.path.join(save_path, 'outputs.tsv'), 'w')
+    outputs_tsv_file.write('filename' + '\t' + 'onset' + '\t' + 'offset' + '\t' + 'event_label' + '\n')
+    for probs in tqdm(probs_per_audio_file):
+      filename = probs['filename']
+      raw_probs = probs['probs']
+      # Apply median filtering
+      processed_raw_probs = medfilt(raw_probs, kernel_size=(19, 1))
+      # Apply thresholding and convert model probability outputs to transcription
+      transcription_filename = os.path.join(save_path, os.path.splitext(filename)[0] + '.txt')
+      transcription_lines = io_lib.extract_transcription(transcription_filename, probs=processed_raw_probs, labels=opt.labels, threshold=threshold)
+      for transcription_line in transcription_lines:
+        outputs_tsv_file.write(filename + '\t' + transcription_line)
+    outputs_tsv_file.close()

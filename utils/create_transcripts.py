@@ -133,8 +133,6 @@ def parse_args():
                       help='Directory to write output files.')
   parser.add_argument('--labels_type', choices=['strong', 'weak', 'ss'], default='strong',
                       help='Type of labels to create.')
-  parser.add_argument('--num_workers', default=16, type=int,
-                      help='Number of threads to use.')
   args = parser.parse_args()
   return args
 
