@@ -10,7 +10,6 @@ import event_detector.losses_lib as losses_lib
 import event_detector.utils_lib as utils_lib
 import event_detector.hparams as opt
 from sklearn.model_selection import train_test_split
-from codecarbon import EmissionsTracker
 
 
 class BatchGenerator(tf.keras.utils.Sequence):
@@ -190,14 +189,11 @@ def train(strongly_labeled_audio_files, weakly_labeled_audio_files, unlabeled_au
                                                   verbose=1),
                tf.keras.callbacks.TensorBoard(log_dir=logs_path)]
   # Fit model
-  tracker = EmissionsTracker()
-  tracker.start()
   history = keras_model.fit(x=batch_generator,
                             validation_data=val_batch_generator,
                             epochs=training_epochs,
                             callbacks=callbacks,
                             verbose=2,
                             initial_epoch=initial_epoch)
-  tracker.stop()
   print('Finished training.')
   return history

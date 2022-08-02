@@ -10,6 +10,8 @@ class Model:
     self.variational_encoder = variational_encoder
 
     # Shared RNN encoder layers
+    self.encoder_att_0 = tf.keras.layers.Attention(name='encoder_att_0')
+    self.encoder_concat_0 = tf.keras.layers.Concatenate(axis=-1)
     self.encoder_rnn_0 = tf.keras.layers.Bidirectional(
       tf.keras.layers.GRU(units=state_size, return_sequences=True),
       name='encoder_rnn_0'
@@ -32,6 +34,8 @@ class Model:
     self.encoder_bottleneck = tf.keras.layers.Dense(num_latents, name='encoder_bottleneck')
 
     # Shared RNN decoder layers
+    self.decoder_att_0 = tf.keras.layers.Attention(name='decoder_att_0')
+    self.decoder_concat_0 = tf.keras.layers.Concatenate(axis=-1)
     self.decoder_rnn_0 = tf.keras.layers.Bidirectional(
       tf.keras.layers.GRU(units=state_size, return_sequences=True),
       name='decoder_rnn_0'
@@ -47,7 +51,9 @@ class Model:
     self.outputs = tf.keras.layers.Dense(num_labels, name='out')
 
   def encoder(self, inputs):
-    rnn_0 = self.encoder_rnn_0(inputs)
+    att_0 = self.encoder_att_0([inputs, inputs])
+    concat_0 = self.encoder_concat_0([att_0, inputs])
+    rnn_0 = self.encoder_rnn_0(concat_0)
     rnn_1 = self.encoder_rnn_1(rnn_0)
     dense_0 = self.encoder_dense_0(inputs)
     add_0 = self.encoder_add_0([rnn_1, dense_0])
@@ -59,7 +65,9 @@ class Model:
     return latents
 
   def decoder(self, inputs, pool=False, sigmoid=False, reconstruction=False):
-    rnn_0 = self.decoder_rnn_0(inputs)
+    att_0 = self.decoder_att_0([inputs, inputs])
+    concat_0 = self.decoder_concat_0([att_0, inputs])
+    rnn_0 = self.decoder_rnn_0(concat_0)
     rnn_1 = self.decoder_rnn_1(rnn_0)
     dense_0 = self.decoder_dense_0(inputs)
     add_0 = self.decoder_add_0([rnn_1, dense_0])
