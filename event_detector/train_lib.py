@@ -142,6 +142,7 @@ def train(strongly_labeled_audio_files, weakly_labeled_audio_files, unlabeled_au
   ead = model_lib.Model(state_size=opt.state_size,
                         num_latents=opt.num_latents,
                         variational_encoder=opt.variational_encoder,
+                        kld_weight=opt.kld_weight,
                         num_features=num_features,
                         num_labels=len(opt.labels),
                         real_strongly_labeled_data=real_strongly_labeled_data)

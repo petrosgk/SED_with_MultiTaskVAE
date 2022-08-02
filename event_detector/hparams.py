@@ -23,6 +23,7 @@ state_size = 256
 variational_encoder = True
 num_latents = state_size
 synthetic_loss_weight = 1.0
+kld_weight = 1e-4
 
 # Training options
 test_size = 0.05  # If no test data are specified, withhold this % of training data as test data

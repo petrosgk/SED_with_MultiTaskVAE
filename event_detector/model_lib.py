@@ -4,7 +4,7 @@ import tensorflow_probability as tfp
 
 class Model:
   def __init__(self, state_size, num_latents, num_features, num_labels,
-               real_strongly_labeled_data=False, variational_encoder=False):
+               real_strongly_labeled_data=False, variational_encoder=False, kld_weight=None):
     self.num_features = num_features
     self.real_strongly_labeled_data = real_strongly_labeled_data
     self.variational_encoder = variational_encoder
@@ -28,7 +28,15 @@ class Model:
       tfp.layers.IndependentNormal.params_size(num_latents),
       name='encoder_mvn_params'
     )
-    self.encoder_latents = tfp.layers.IndependentNormal(num_latents, name='encoder_latents')
+    prior = tfp.distributions.Independent(
+      tfp.distributions.Normal(loc=tf.zeros(num_latents), scale=tf.ones(num_latents)),
+      reinterpreted_batch_ndims=1
+    )
+    self.encoder_latents = tfp.layers.IndependentNormal(
+      num_latents,
+      activity_regularizer=tfp.layers.KLDivergenceRegularizer(prior, weight=kld_weight),
+      name='encoder_latents'
+    )
 
     # Shared bottleneck
     self.encoder_bottleneck = tf.keras.layers.Dense(num_latents, name='encoder_bottleneck')
