@@ -1,0 +1,36 @@
+# Options for audio extraction
+sample_rate = 16000
+loudness_normalize = True
+
+# Options for spectrogram extraction
+n_fft = 2048
+frame_step_ms = 24
+top_db = None
+
+# Options for mel spectrogram extraction
+mel_features = True
+num_mel_bins = 80
+fmin_hz = 0
+fmax_hz = None
+
+# Options for gammatonegram extraction
+gammatone_features = False
+
+# Model options
+learning_rate = 1e-4
+state_size = 512
+num_latents = 32
+kld_weight = 1e-3
+
+# Inference options
+infer_freq_epochs = 10
+num_iterations = 10
+num_perturbations = 5
+
+# Training options
+test_size = 0.05  # If no test data are specified, withhold this % of training data as test data
+
+# Class labels
+labels = ['Speech',
+          'Dog',
+          'Cat']
