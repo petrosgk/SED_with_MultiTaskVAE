@@ -77,7 +77,7 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
       os.makedirs(unlabeled_train_data_path, exist_ok=True)
       os.makedirs(unlabeled_test_data_path, exist_ok=True)
       print('Creating unlabeled training and validation data...')
-      unlabeled_train_audio_files, unlabeled_test_audio_files = train_test_split(audio_files,
+      unlabeled_train_audio_files, unlabeled_test_audio_files = train_test_split(unlabeled_audio_files,
                                                                 test_size=opt.test_size,
                                                                 random_state=42)
       print('Extracting unlabeled training data...')
