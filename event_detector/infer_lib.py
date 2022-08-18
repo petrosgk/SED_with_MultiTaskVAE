@@ -16,7 +16,7 @@ def infer(audio_files, data_path, output_dir, model_path, thresholds, save_raw_p
   normalization_class_path = os.path.join(data_path, 'normalization.pickle')
   with open(normalization_class_path, 'rb') as f:
     normalization = pickle.load(f)
-  if opt.mel_features or opt.gammatone_features:
+  if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
   else:
     num_features = opt.n_fft // 2 + 1
@@ -39,9 +39,9 @@ def infer(audio_files, data_path, output_dir, model_path, thresholds, save_raw_p
     audio_data = io_lib.load_audio_data(audio_file)
     duration = round(len(audio_data) / opt.sample_rate, ndigits=1)
     metadata_tsv_file.write(os.path.basename(audio_file) + '\t' + str(duration) + '\n')
-    if opt.mel_features:
+    if opt.features == 'mel':
       inputs = audio_lib.extract_mel_features_from_audio(audio_data)
-    elif opt.gammatone_features:
+    elif opt.features == 'gammatone':
       inputs = audio_lib.extract_gammatone_features_from_audio(audio_data)
     else:
       inputs = audio_lib.extract_stft_features_from_audio(audio_data)

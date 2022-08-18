@@ -15,6 +15,7 @@ class BatchGenerator(tf.keras.utils.Sequence):
   def __init__(self, data_path, normalization, unlabeled_data_path=None):
     self.data = glob.glob(os.path.join(data_path, '*.npz'))
     self.normalization = normalization
+    self.unlabeled_data = None
     if unlabeled_data_path is not None:
       self.unlabeled_data = glob.glob(os.path.join(unlabeled_data_path, '*.npz'))
 
@@ -55,7 +56,7 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
     unlabeled_train_data_path = os.path.join(unlabeled_data_path, 'train')
     unlabeled_test_data_path = os.path.join(unlabeled_data_path, 'test')
   normalization_class_path = os.path.join(data_path, 'normalization.pickle')
-  if opt.mel_features or opt.gammatone_features:
+  if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
   else:
     num_features = opt.n_fft // 2 + 1
@@ -125,7 +126,7 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
   os.makedirs(logs_path, exist_ok=True)
   outputs_path = os.path.join(output_dir, 'outputs', '{}'.format(model_name))
   callbacks = [tf.keras.callbacks.ModelCheckpoint(filepath=model_path,
-                                                  monitor='val_decoder_out_mean_squared_error',
+                                                  monitor='val_mean_squared_error',
                                                   save_weights_only=True,
                                                   save_best_only=True,
                                                   verbose=1),

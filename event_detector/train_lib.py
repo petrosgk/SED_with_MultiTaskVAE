@@ -87,7 +87,7 @@ def train(strongly_labeled_audio_files, weakly_labeled_audio_files, unlabeled_au
     real_strongly_labeled_data_path = os.path.join(train_data_path, 'strong_real')
     real_strongly_labeled_test_data_path = os.path.join(test_data_path, 'strong_real')
   normalization_class_path = os.path.join(data_path, 'normalization.pickle')
-  if opt.mel_features or opt.gammatone_features:
+  if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
   else:
     num_features = opt.n_fft // 2 + 1

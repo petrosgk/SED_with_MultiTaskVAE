@@ -2,19 +2,18 @@
 sample_rate = 16000
 loudness_normalize = True
 
+# Type of input features, one of ['mel', 'stft', 'gammatone']
+features = 'mel'
+
 # Options for spectrogram extraction
 n_fft = 2048
 frame_step_ms = 24
 top_db = None
 
-# Options for mel spectrogram extraction
-mel_features = True
+# Options for mel spectrogram (or gammatonegram) extraction
 num_mel_bins = 128
 fmin_hz = 0
 fmax_hz = None
-
-# Options for gammatonegram extraction
-gammatone_features = False
 
 # Model options
 batch_size = 32

@@ -35,9 +35,9 @@ def force_gpu_memory_growth():
 
 
 def extract_features_from_audio(audio_data):
-  if opt.mel_features:
+  if opt.features == 'mel':
     features = audio_lib.extract_mel_features_from_audio(audio_data)
-  elif opt.gammatone_features:
+  elif opt.features == 'gammatone':
     features = audio_lib.extract_gammatone_features_from_audio(audio_data)
   else:
     features = audio_lib.extract_stft_features_from_audio(audio_data)

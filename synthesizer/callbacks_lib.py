@@ -27,7 +27,7 @@ class VAECallback(tf.keras.callbacks.Callback):
     self.infer_freq_epochs = infer_freq_epochs
     self.num_iterations = num_iterations
     self.num_perturbations = num_perturbations
-    if opt.mel_features:
+    if opt.features == 'mel' or opt.features == 'gammatone':
       num_features = opt.num_mel_bins
     else:
       num_features = opt.n_fft // 2 + 1
@@ -54,8 +54,7 @@ class VAECallback(tf.keras.callbacks.Callback):
       with np.load(sampled_data[i]) as loaded_data:
         audio_sample = loaded_data['features']
         audio_sample = self.normalization.normalize(audio_sample)
-      if (not opt.mel_features) and (not opt.gammatone_features):
-        self.write_audio(audio_sample, filename=os.path.join(dst_dir, 'inputs_%d.wav' % i))
+      self.write_audio(audio_sample, filename=os.path.join(dst_dir, 'inputs_%d.wav' % i))
       mvn_params = self.encoder_inference_model.predict_on_batch(np.expand_dims(audio_sample, axis=0))
       mvn_params = np.squeeze(mvn_params, axis=0)
       all_mvn_params.append(mvn_params)
@@ -65,8 +64,7 @@ class VAECallback(tf.keras.callbacks.Callback):
         outputs = self.decoder_inference_model.predict_on_batch(np.expand_dims(sampled_latents, axis=0))
         outputs = np.squeeze(outputs, axis=0)
         all_outputs.append(outputs)
-        if (not opt.mel_features) and (not opt.gammatone_features):
-          self.write_audio(outputs, filename=os.path.join(dst_dir, 'outputs_%d.%d.wav' % (i, idx)))
+        self.write_audio(outputs, filename=os.path.join(dst_dir, 'outputs_%d.%d.wav' % (i, idx)))
       self.plot([audio_sample, all_outputs], filename=os.path.join(dst_dir, 'results_%d.png' % i))
     if opt.num_latents == 2:
       self.plot_latent_space(all_mvn_params, filename=os.path.join(dst_dir, 'latent_space.png'))
@@ -87,14 +85,14 @@ class VAECallback(tf.keras.callbacks.Callback):
     plt.subplot(num_plot_rows, 1, 1)
     plt.title('Inputs')
     display.specshow(self.normalization.denormalize(audio_sample).transpose(),
-                     x_axis='time', y_axis='mel' if opt.mel_features else 'log', sr=opt.sample_rate,
+                     x_axis='time', y_axis='mel' if opt.features == 'mel' else 'log', sr=opt.sample_rate,
                      fmin=opt.fmin_hz, fmax=opt.fmax_hz, hop_length=frame_step, cmap='magma')
     idx = 2
     for outputs in all_outputs:
       plt.subplot(num_plot_rows, 1, idx)
       plt.title('Outputs')
       display.specshow(self.normalization.denormalize(outputs).transpose(),
-                       x_axis='time', y_axis='mel' if opt.mel_features else 'log', sr=opt.sample_rate,
+                       x_axis='time', y_axis='mel' if opt.features == 'mel' else 'log', sr=opt.sample_rate,
                        fmin=opt.fmin_hz, fmax=opt.fmax_hz, hop_length=frame_step, cmap='magma')
       idx += 1
     plt.tight_layout()
@@ -117,7 +115,12 @@ class VAECallback(tf.keras.callbacks.Callback):
 
   def write_audio(self, inputs, filename):
     denormalized_inputs = self.normalization.denormalize(inputs)
-    audio_data = audio_lib.extract_audio_from_stft_features(denormalized_inputs)
+    if opt.features == 'mel':
+      audio_data = audio_lib.extract_audio_from_mel_features(denormalized_inputs)
+    elif opt.features == 'stft':
+      audio_data = audio_lib.extract_audio_from_stft_features(denormalized_inputs)
+    else:
+      audio_data = None
     if audio_data is None:
       print('Skipping audio file %s' % filename)
       return

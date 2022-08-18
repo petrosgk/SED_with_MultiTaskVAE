@@ -9,7 +9,7 @@ def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument('--path_to_data', required=True, type=str,
                       help='Path to training data.')
-  parser.add_argument('--path_to_unlabeled_data', required=True, type=str,
+  parser.add_argument('--path_to_unlabeled_data', type=str,
                       help='Path to unlabeled training data.')
   parser.add_argument('--output_dir', required=True, type=str,
                       help='Directory to place model data.')

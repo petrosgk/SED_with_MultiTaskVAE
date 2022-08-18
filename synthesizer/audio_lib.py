@@ -82,6 +82,27 @@ def extract_audio_from_stft_features(inputs):
   return audio_data
 
 
+def extract_audio_from_mel_features(inputs):
+  mel = librosa.core.db_to_amplitude(inputs).transpose()
+  frame_step = math.ceil(opt.sample_rate * (opt.frame_step_ms / 1000))
+  try:
+    audio_data = librosa.feature.inverse.mel_to_audio(mel,
+                                                      sr=opt.sample_rate,
+                                                      n_fft=opt.n_fft,
+                                                      hop_length=frame_step,
+                                                      fmin=opt.fmin_hz,
+                                                      fmax=opt.fmax_hz,
+                                                      pad_mode='constant')
+  except librosa.util.exceptions.ParameterError as e:
+    print(e)
+    return None
+  if not np.all(np.isfinite(inputs)):
+    return None
+  if opt.loudness_normalize:
+    audio_data = loudness_normalize_audio(audio_data)
+  return audio_data
+
+
 def loudness_normalize_audio(inputs, block_size=0.4):
   warnings.simplefilter('ignore')
   audio_duration = len(inputs)
