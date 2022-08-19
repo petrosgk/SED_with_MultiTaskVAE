@@ -13,12 +13,12 @@ from tqdm import tqdm
 from librosa import display
 
 
-def infer(audio_files, data_path, output_dir, model_path, num_perturbations=5):
+def infer(audio_files, normalization_class, output_dir, model_path, num_perturbations=5, generate_audio=True):
   if not os.path.exists(model_path):
     raise RuntimeError('Model weights not found in %s.' % model_path)
   os.makedirs(output_dir, exist_ok=True)
-  normalization_class_path = os.path.join(data_path, 'normalization.pickle')
-  with open(normalization_class_path, 'rb') as f:
+  print('Loading normalization class from: %s' % normalization_class)
+  with open(normalization_class, 'rb') as f:
     normalization = pickle.load(f)
   if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
@@ -34,16 +34,17 @@ def infer(audio_files, data_path, output_dir, model_path, num_perturbations=5):
   print('Loading model weights from: %s' % model_path)
   vae_encoder_model.load_weights(model_path, by_name=True)
   vae_decoder_model.load_weights(model_path, by_name=True)
-  for audio_file_idx, audio_file in tqdm(enumerate(audio_files)):
+  for audio_file_idx, audio_file in tqdm(enumerate(audio_files), total=len(audio_files)):
     audio_data = io_lib.load_audio_data(audio_file)
     features = utils_lib.extract_features_from_audio(audio_data)
     features = normalization.normalize(features)
     filename = os.path.splitext(os.path.basename(audio_file))[0]
     dst_dir = os.path.join(output_dir, filename)
     os.makedirs(dst_dir, exist_ok=True)
-    write_audio(features,
-                filename=os.path.join(dst_dir, 'inputs.wav'),
-                normalization=normalization)
+    if generate_audio:
+      write_audio(features,
+                  filename=os.path.join(dst_dir, 'inputs.wav'),
+                  normalization=normalization)
     mvn_params = vae_encoder_model.predict_on_batch(np.expand_dims(features, axis=0))
     mvn_params = np.squeeze(mvn_params, axis=0)
     all_sampled_latents = sample_from_mvn(mvn_params, num_perturbations=num_perturbations)
@@ -52,10 +53,11 @@ def infer(audio_files, data_path, output_dir, model_path, num_perturbations=5):
       outputs = vae_decoder_model.predict_on_batch(np.expand_dims(sampled_latents, axis=0))
       outputs = np.squeeze(outputs, axis=0)
       all_outputs.append(outputs)
-      write_audio(outputs,
-                  filename=os.path.join(dst_dir, 'outputs_%d.wav' % latent_idx),
-                  normalization=normalization)
-    plot([features, all_outputs], filename=os.path.join(output_dir, 'results.png'), normalization=normalization)
+      if generate_audio:
+        write_audio(outputs,
+                    filename=os.path.join(dst_dir, 'outputs_%d.wav' % latent_idx),
+                    normalization=normalization)
+    plot([features, all_outputs], filename=os.path.join(dst_dir, 'results.png'), normalization=normalization)
 
 
 def sample_from_mvn(mvn_params, num_perturbations):
