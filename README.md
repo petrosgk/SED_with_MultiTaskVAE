@@ -80,10 +80,10 @@ An example for an input audio file containing speech and 3 output variations:
 
 ![vae_example_outputs](synthesizer/example/results.png)
 
-![example_input_audio](synthesizer/example/inputs.wav)
+![example_input_audio](synthesizer/example/inputs.mov)
 
-![example_output_0_audio](synthesizer/example/outputs_0.wav)
+![example_output_0_audio](synthesizer/example/outputs_0.mov)
 
-![example_output_1_audio](synthesizer/example/outputs_1.wav)
+![example_output_1_audio](synthesizer/example/outputs_1.mov)
 
-![example_output_2_audio](synthesizer/example/outputs_2.wav)
+![example_output_2_audio](synthesizer/example/outputs_2.mov)
