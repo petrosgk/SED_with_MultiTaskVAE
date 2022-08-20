@@ -9,8 +9,8 @@ def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument('--path_to_evaluation_data', required=True, type=str,
                       help='Path to audio files.')
-  parser.add_argument('--path_to_data', required=True, type=str,
-                      help='Path to data.')
+  parser.add_argument('--path_to_normalization_class', required=True, type=str,
+                      help='Path to normalization class .pickle file.')
   parser.add_argument('--path_to_model', required=True, type=str,
                       help='Path to trained model checkpoint.')
   parser.add_argument('--output_dir', required=True, type=str,
@@ -53,7 +53,7 @@ if __name__ == '__main__':
   else:
     thresholds = np.arange(0.01, 1.0, 0.02)
   infer_lib.infer(audio_files=audio_files,
-                  data_path=args.path_to_data,
+                  normalization_class=args.path_to_normalization_class,
                   output_dir=args.output_dir,
                   model_path=args.path_to_model,
                   thresholds=thresholds,

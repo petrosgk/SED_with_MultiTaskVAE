@@ -1,0 +1,10 @@
+matplotlib
+tqdm
+pandas
+PyYAML
+librosa
+SoundFile
+numpy
+pyloudnorm
+scikit-learn
+scipy

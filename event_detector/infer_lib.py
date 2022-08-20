@@ -9,12 +9,12 @@ from tqdm import tqdm
 from scipy.signal import medfilt
 
 
-def infer(audio_files, data_path, output_dir, model_path, thresholds, save_raw_probs=False):
+def infer(audio_files, normalization_class, output_dir, model_path, thresholds, save_raw_probs=False):
   if not os.path.exists(model_path):
     raise RuntimeError('Model weights not found in %s.' % model_path)
   os.makedirs(output_dir, exist_ok=True)
-  normalization_class_path = os.path.join(data_path, 'normalization.pickle')
-  with open(normalization_class_path, 'rb') as f:
+  print('Loading normalization class from: %s' % normalization_class)
+  with open(normalization_class, 'rb') as f:
     normalization = pickle.load(f)
   if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
