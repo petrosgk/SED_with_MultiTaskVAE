@@ -1,5 +1,5 @@
-# Sound Event Detection and Synthesis with Multi-Task Learning VAE
-Sound Event Detector and Synthesizer models based on Multi-Task Learning with Variational Information Bottleneck.
+# Sound Event Detector and Synthesizer based on Multi-Task Learning Model with Variational Information Bottleneck
+This repository contains the code and trained weights for the Sound Event Detector and Sound Event Synthesizer models.
 
 ## Installation
 
