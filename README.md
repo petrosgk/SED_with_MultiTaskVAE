@@ -11,7 +11,7 @@ Also includes Sound Event Synthesizer model based on Variational AutoEncoder.
 
 ## Sound Event Detector
 
-The Sound Event Detector has been trained on the DCASE Task4 2022 dataset. Pre-trained weights are provided under _event_detector/weights_. Normalization class object containing dataset mean and variance statistics is provided under _data/normalization.pickle_.
+The Sound Event Detector has been trained on the DCASE Task4 2022 dataset. Pre-trained weights are provided under _event_detector/weights_. Normalization class object containing dataset mean and variance statistics is provided under _event_detector/data_.
 
 ### Data preparation
 
@@ -62,3 +62,28 @@ Real strongly labeled data from Audioset can also be incorporated by adding:
 --path_to_real_strongly_labeled_train_data /path/to/dcase/strong_label_real
 ```
 
+## Sound Event Synthesizer
+
+The Sound Event Synthesizer has been trained to generate variations of the DCASE Task4 foreground events for the classes of "Speech", "Cat" and "Dog". Pre-trained weights are provided under _synthesizer/weights_. Normalization class object containing dataset mean and variance statistics is provided under _synthesizer/data_.
+
+### Inference
+
+Given some audio file(s), one can generate a given number of variations (or perturbations) of each audio file as:
+
+```shell
+python synthesize.py --path_to_audio_files /path/to/audio/files --path_to_normalization_class /synthesizer/data/normalization.pickle --path_to_model /synthesizer/weights/vae.gru.size_512.lr_1e-4.num_latents_32.kld_weight_1e-3.h5 --output_dir /path/to/output/dir --num_perturbations num_perturbations
+```
+
+In the output directory, for each input audio file, there will be: 1) a figure with the original mel-spectrogram and the generated mel-spectrograms, 2) Original audio file and the generated audio files. 
+
+An example for an input audio file containing speech and 3 output variations:
+
+![vae_example_outputs](synthesizer/example/results.png)
+
+![example_input_audio](synthesizer/example/inputs.wav)
+
+![example_output_0_audio](synthesizer/example/outputs_0.wav)
+
+![example_output_1_audio](synthesizer/example/outputs_1.wav)
+
+![example_output_2_audio](synthesizer/example/outputs_2.wav)
