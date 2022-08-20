@@ -1,4 +1,4 @@
-# SED_with_MultiTaskVAE
+# Sound Event Detection and Synthesis with Multi-Task Learning VAE
 Sound Event Detector and Synthesizer models based on Multi-Task Learning with Variational Information Bottleneck.
 
 ## Installation
