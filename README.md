@@ -84,3 +84,8 @@ The synthesizer can be trained on the DCASE 2022 foreground audio events with:
 ```shell
 python train_synthesizer.py --path_to_data /path/to/dcase/foreground --output_dir /path/to/output/dir --model_name experiment_name
 ```
+Unlabeled data from DCASE 2022 dataset can also be incorporated by adding:
+
+```shell
+--path_to_unlabeled_data /path/to/dcase/unlabeled
+```
