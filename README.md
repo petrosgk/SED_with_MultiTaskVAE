@@ -1,4 +1,4 @@
-# Sound Event Detector and Synthesizer
+# MTL-VAE Sound Event Detector and Synthesizer
 This repository contains the code and trained weights for [Sound Event Detector](#sound-event-detector) and [Sound Event Synthesizer](#sound-event-synthesizer) VAE models, trained via Multi-Task Learning on the DCASE Task4 2022 dataset. This README contains instructions for installation, along with inference and training instructions for both models.
 
 ## Installation
