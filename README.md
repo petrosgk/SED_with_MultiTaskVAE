@@ -1,4 +1,4 @@
-# Sound Event Detector and Synthesizer based on Multi-Task Learning Model with Variational Information Bottleneck
+# Sound Event Detector and Synthesizer based on MTL-VAE
 This repository contains the code and trained weights for the Sound Event Detector and Sound Event Synthesizer models. This README contains instructions for installation, along with inference and training instructions for both models.
 
 ## Installation
