@@ -1,6 +1,5 @@
 # SED_with_MultiTaskVAE
-Sound Event Detector based on Multi-Task Learning Model with Variational Information Bottleneck.
-Also includes Sound Event Synthesizer model based on Variational AutoEncoder.
+Sound Event Detector and Synthesizer models based on Multi-Task Learning with Variational Information Bottleneck.
 
 ## Installation
 
@@ -76,14 +75,12 @@ python synthesize.py --path_to_audio_files /path/to/audio/files --path_to_normal
 
 In the output directory, for each input audio file, there will be: 1) a figure with the original mel-spectrogram and the generated mel-spectrograms, 2) Original audio file and the generated audio files. 
 
-An example for an input audio file containing speech and 3 output variations:
+An example for an input audio file containing speech and 3 output variations can be found in _synthesizer/example_.
 
-![vae_example_outputs](synthesizer/example/results.png)
+### Training
 
-![example_input_audio](synthesizer/example/inputs.mov)
+The synthesizer can be trained on the DCASE 2022 foreground audio events with:
 
-![example_output_0_audio](synthesizer/example/outputs_0.mov)
-
-![example_output_1_audio](synthesizer/example/outputs_1.mov)
-
-![example_output_2_audio](synthesizer/example/outputs_2.mov)
+```shell
+python train_synthesizer.py --path_to_data /path/to/dcase/foreground --output_dir /path/to/output/dir --model_name experiment_name
+```
