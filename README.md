@@ -3,6 +3,8 @@ This repository contains the code and trained weights for [Sound Event Detector]
 
 ## Installation
 
+Code is known to work with Python 3.8, on Ubuntu 20.04 and Windows 10.
+
 1) Install [Gammatone Filterbank Toolkit](https://github.com/detly/gammatone)
 2) Install [TensorFlow](https://www.tensorflow.org/install)
 3) Install [TensorFlow Probability](https://www.tensorflow.org/probability/install)
