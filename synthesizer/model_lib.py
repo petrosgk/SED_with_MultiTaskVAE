@@ -3,11 +3,9 @@ import tensorflow_probability as tfp
 
 
 class Model:
-  def __init__(self, state_size, num_latents, num_features, kld_weight=None,
-               use_unlabeled_data=False):
+  def __init__(self, state_size, num_latents, num_features, kld_weight=None):
     self.num_latents = num_latents
     self.num_features = num_features
-    self.use_unlabeled_data = use_unlabeled_data
 
     # RNN encoder layers
     self.encoder_rnn_0 = tf.keras.layers.Bidirectional(
@@ -69,16 +67,6 @@ class Model:
     # shape: [batch_size, sequence_length, num_features]
     inputs = [main_inputs]
     outputs = [decoder_outputs]
-    if self.use_unlabeled_data:
-      ## Unlabeled reconstruction task inputs
-      unlabeled_inputs = tf.keras.layers.Input(shape=(None, self.num_features), name='unlabeled_inputs')
-      # shape: [batch_size, sequence_length, num_features]
-      uli_latents, _ = self.encoder(unlabeled_inputs)
-      # shape: [batch_size, sequence_length, num_latents]
-      uli_decoder_outputs = self.decoder(uli_latents)
-      # shape: [batch_size, sequence_length, num_features]
-      inputs += [unlabeled_inputs]
-      outputs += [uli_decoder_outputs]
     model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
     return model
 

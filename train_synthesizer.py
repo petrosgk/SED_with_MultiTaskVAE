@@ -9,8 +9,6 @@ def parse_args():
   parser = argparse.ArgumentParser()
   parser.add_argument('--path_to_data', required=True, type=str,
                       help='Path to training data.')
-  parser.add_argument('--path_to_unlabeled_data', type=str,
-                      help='Path to unlabeled training data.')
   parser.add_argument('--output_dir', required=True, type=str,
                       help='Directory to place model data.')
   parser.add_argument('--model_name', required=True, type=str,
@@ -43,11 +41,7 @@ if __name__ == '__main__':
     )
   )
   filtered_audio_files, label_per_audio_file = filter_audio_files(audio_files)
-  unlabeled_train_audio_files = None
-  if args.path_to_unlabeled_data:
-    unlabeled_train_audio_files = glob.glob(os.path.join(args.path_to_unlabeled_data, '*.wav'))
   train_lib.train(audio_files=filtered_audio_files,
-                  unlabeled_audio_files=unlabeled_train_audio_files,
                   output_dir=args.output_dir,
                   label_per_audio_file=label_per_audio_file,
                   model_name=args.model_name,

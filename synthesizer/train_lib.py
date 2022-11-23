@@ -12,12 +12,10 @@ from sklearn.model_selection import train_test_split
 
 
 class BatchGenerator(tf.keras.utils.Sequence):
-  def __init__(self, data_path, normalization, unlabeled_data_path=None):
+  def __init__(self, data_path, normalization, shuffle=False):
     self.data = glob.glob(os.path.join(data_path, '*.npz'))
     self.normalization = normalization
-    self.unlabeled_data = None
-    if unlabeled_data_path is not None:
-      self.unlabeled_data = glob.glob(os.path.join(unlabeled_data_path, '*.npz'))
+    self.shuffle = shuffle
 
   def __len__(self):
     return len(self.data)
@@ -32,14 +30,10 @@ class BatchGenerator(tf.keras.utils.Sequence):
   def __getitem__(self, idx):
     data = self.data[idx]
     audio_sample = self.load_data(data)
-    inputs = [audio_sample]
-    outputs = [audio_sample]
-    if self.unlabeled_data is not None:
-      unlabeled_data = random.sample(self.unlabeled_data, k=1)[0]
-      unlabeled_audio_sample = self.load_data(unlabeled_data)
-      inputs += [unlabeled_audio_sample]
-      outputs += [unlabeled_audio_sample]
-    return inputs, outputs
+    return audio_sample, audio_sample
+
+  def on_epoch_end(self):
+    random.shuffle(self.data)
 
 
 def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=None,
@@ -49,12 +43,6 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
   data_path = os.path.join(output_dir, 'data')
   train_data_path = os.path.join(data_path, 'train')
   test_data_path = os.path.join(data_path, 'test')
-  unlabeled_train_data_path = None
-  unlabeled_test_data_path = None
-  if unlabeled_audio_files is not None:
-    unlabeled_data_path = os.path.join(output_dir, 'unlabeled_data')
-    unlabeled_train_data_path = os.path.join(unlabeled_data_path, 'train')
-    unlabeled_test_data_path = os.path.join(unlabeled_data_path, 'test')
   normalization_class_path = os.path.join(data_path, 'normalization.pickle')
   if opt.features == 'mel' or opt.features == 'gammatone':
     num_features = opt.num_mel_bins
@@ -74,18 +62,6 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
     print('Min. features length = %d, Max. features length = %d' % (min_length, max_length))
     print('Extracting validation data...')
     utils_lib.data_extractor(test_audio_files, test_data_path)
-    if unlabeled_audio_files is not None:
-      os.makedirs(unlabeled_train_data_path, exist_ok=True)
-      os.makedirs(unlabeled_test_data_path, exist_ok=True)
-      print('Creating unlabeled training and validation data...')
-      unlabeled_train_audio_files, unlabeled_test_audio_files = train_test_split(unlabeled_audio_files,
-                                                                test_size=opt.test_size,
-                                                                random_state=42)
-      print('Extracting unlabeled training data...')
-      min_length, max_length = utils_lib.data_extractor(unlabeled_train_audio_files, unlabeled_train_data_path, normalization=normalization)
-      print('Min. features length = %d, Max. features length = %d' % (min_length, max_length))
-      print('Extracting unlabeled validation data...')
-      utils_lib.data_extractor(unlabeled_test_audio_files, unlabeled_test_data_path)
     with open(normalization_class_path, 'wb') as f:
       pickle.dump(normalization, f)
   else:
@@ -96,21 +72,14 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
   os.makedirs(checkpoint_path, exist_ok=True)
   model_path = os.path.join(checkpoint_path, '{}.h5'.format(model_name))
   # Create model
-  use_unlabeled_data = False if unlabeled_audio_files is None else True
   vae = model_lib.Model(state_size=opt.state_size,
                         num_latents=opt.num_latents,
                         num_features=num_features,
-                        kld_weight=opt.kld_weight,
-                        use_unlabeled_data=use_unlabeled_data)
+                        kld_weight=opt.kld_weight)
   keras_model = vae.create_model()
   learning_rate = opt.learning_rate if initial_lr is None else initial_lr
-  loss = [tf.keras.losses.MeanSquaredError()]
-  metrics = [tf.keras.losses.MeanSquaredError()]
-  if unlabeled_audio_files is not None:
-    loss += [tf.keras.losses.MeanSquaredError()]
   keras_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-                      loss=loss,
-                      metrics=metrics)
+                      loss=tf.keras.losses.MeanSquaredError())
   if os.path.exists(model_path):
     print('Loading model weights from: %s' % model_path)
     keras_model.load_weights(filepath=model_path)
@@ -118,15 +87,15 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
     print('No model weights found in %s. Starting new training...' % model_path)
   print(keras_model.summary())
   # Create batch data generator
-  batch_generator = BatchGenerator(train_data_path, normalization=normalization, unlabeled_data_path=unlabeled_train_data_path)
+  batch_generator = BatchGenerator(train_data_path, normalization=normalization, shuffle=True)
   # Create batch data generator for validation data
-  val_batch_generator = BatchGenerator(test_data_path, normalization=normalization, unlabeled_data_path=unlabeled_test_data_path)
+  val_batch_generator = BatchGenerator(test_data_path, normalization=normalization)
   # Define callbacks
   logs_path = os.path.join(output_dir, 'logs', '{}'.format(model_name))
   os.makedirs(logs_path, exist_ok=True)
   outputs_path = os.path.join(output_dir, 'outputs', '{}'.format(model_name))
   callbacks = [tf.keras.callbacks.ModelCheckpoint(filepath=model_path,
-                                                  monitor='val_mean_squared_error',
+                                                  monitor='val_loss',
                                                   save_weights_only=True,
                                                   save_best_only=True,
                                                   verbose=1),
@@ -144,7 +113,7 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
                             validation_data=val_batch_generator,
                             epochs=training_epochs,
                             callbacks=callbacks,
-                            verbose=2,
+                            verbose=1,
                             initial_epoch=initial_epoch)
   print('Finished training.')
   return history

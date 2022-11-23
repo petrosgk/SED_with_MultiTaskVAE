@@ -7,19 +7,19 @@ features = 'mel'
 
 # Options for spectrogram extraction
 n_fft = 2048
-frame_step_ms = 24
+frame_step_ms = 12
 top_db = None
 
 # Options for mel spectrogram (or gammatonegram) extraction
-num_mel_bins = 80
+num_mel_bins = 128
 fmin_hz = 0
 fmax_hz = None
 
 # Model options
 learning_rate = 1e-4
-state_size = 512
-num_latents = 32
-kld_weight = 1e-3
+state_size = 256
+num_latents = 8
+kld_weight = 1e-4
 
 # Inference options
 infer_freq_epochs = 10
