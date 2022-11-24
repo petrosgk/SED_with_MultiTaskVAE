@@ -79,7 +79,8 @@ def train(audio_files, output_dir, label_per_audio_file, unlabeled_audio_files=N
   keras_model = vae.create_model()
   learning_rate = opt.learning_rate if initial_lr is None else initial_lr
   keras_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=learning_rate),
-                      loss=tf.keras.losses.MeanSquaredError())
+                      loss=tf.keras.losses.MeanSquaredError(),
+                      metrics=[tf.keras.losses.MeanSquaredError(name='mse')])
   if os.path.exists(model_path):
     print('Loading model weights from: %s' % model_path)
     keras_model.load_weights(filepath=model_path)

@@ -1,6 +1,6 @@
 # Options for audio extraction
 sample_rate = 16000
-loudness_normalize = True
+loudness_normalize = False
 
 # Type of input features, one of ['mel', 'stft', 'gammatone']
 features = 'mel'
@@ -17,7 +17,7 @@ fmax_hz = None
 
 # Model options
 learning_rate = 1e-4
-state_size = 256
+state_size = 512
 num_latents = 8
 kld_weight = 1e-4
 

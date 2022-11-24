@@ -17,7 +17,7 @@ def extract_stft_features_from_audio(inputs):
     inputs = loudness_normalize_audio(inputs)
   frame_step = round(opt.sample_rate * (opt.frame_step_ms / 1000))
   try:
-    stft = librosa.core.stft(inputs,
+    stft = librosa.core.stft(y=inputs,
                              n_fft=opt.n_fft,
                              pad_mode='constant',
                              hop_length=frame_step)
@@ -34,7 +34,7 @@ def extract_mel_features_from_audio(inputs):
     inputs = loudness_normalize_audio(inputs)
   frame_step = round(opt.sample_rate * (opt.frame_step_ms / 1000))
   try:
-    mel = librosa.feature.melspectrogram(inputs,
+    mel = librosa.feature.melspectrogram(y=inputs,
                                          sr=opt.sample_rate,
                                          n_fft=opt.n_fft,
                                          pad_mode='constant',
@@ -55,7 +55,7 @@ def extract_gammatone_features_from_audio(inputs):
     inputs = loudness_normalize_audio(inputs)
   window_time = opt.n_fft / opt.sample_rate
   hop_time = opt.frame_step_ms / 1000
-  gammatonegram = gtgram.gtgram(inputs,
+  gammatonegram = gtgram.gtgram(wave=inputs,
                                 fs=opt.sample_rate,
                                 window_time=window_time,
                                 hop_time=hop_time,
@@ -69,7 +69,7 @@ def extract_audio_from_stft_features(inputs):
   amplitude = librosa.core.db_to_amplitude(inputs).transpose()
   frame_step = math.ceil(opt.sample_rate * (opt.frame_step_ms / 1000))
   try:
-    audio_data = librosa.griffinlim(amplitude,
+    audio_data = librosa.griffinlim(S=amplitude,
                                     hop_length=frame_step,
                                     pad_mode='constant')
   except librosa.util.exceptions.ParameterError as e:
@@ -86,7 +86,7 @@ def extract_audio_from_mel_features(inputs):
   mel = librosa.core.db_to_amplitude(inputs).transpose()
   frame_step = math.ceil(opt.sample_rate * (opt.frame_step_ms / 1000))
   try:
-    audio_data = librosa.feature.inverse.mel_to_audio(mel,
+    audio_data = librosa.feature.inverse.mel_to_audio(M=mel,
                                                       sr=opt.sample_rate,
                                                       n_fft=opt.n_fft,
                                                       hop_length=frame_step,

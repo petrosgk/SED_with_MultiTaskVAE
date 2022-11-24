@@ -1,6 +1,7 @@
 import os
 import pickle
 import math
+import shutil
 import numpy as np
 import matplotlib.pyplot as plt
 import tensorflow_probability as tfp
@@ -42,6 +43,7 @@ def infer(audio_files, normalization_class, output_dir, model_path, num_perturba
     dst_dir = os.path.join(output_dir, filename)
     os.makedirs(dst_dir, exist_ok=True)
     if generate_audio:
+      shutil.copyfile(audio_file, os.path.join(dst_dir, 'original.wav'))
       write_audio(features,
                   filename=os.path.join(dst_dir, 'inputs.wav'),
                   normalization=normalization)
